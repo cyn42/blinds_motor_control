@@ -17,17 +17,17 @@
 
  */
 
-//#include <Stepper.h>
+#include <Stepper.h>
 
 
-//const int stepsPerRevolution =400;  // change this to fit the number of steps per revolution
+const int stepsPerRevolution =2038;  // change this to fit the number of steps per revolution
 // for your motor
 
 // initialize the stepper library on pins 8 through 11:
 //Stepper myStepper(stepsPerRevolution, 9,10,11,12);
-// Stepper myStepper(stepsPerRevolution, 8,9,10,11);
-// int windowHeightSteps = 4000;
-// int currentHeight = 0;
+Stepper myStepper(stepsPerRevolution, 8, 10, 9, 11);
+int windowHeightSteps = 8000;
+int currentHeight = 0;
 
 int incomingByte;
 int openLED = 4;
@@ -36,7 +36,7 @@ int stopLED = 6;
 
 void setup() {
   // set the speed at 60 rpm:
-  //myStepper.setSpeed(60);
+  myStepper.setSpeed(10);
   // initialize the serial port:
   Serial.begin(9600);
 
@@ -64,23 +64,17 @@ void loop() {
     incomingByte = Serial.read();
 
     if (incomingByte == 'H') {
-      //open();
       digitalWrite(openLED, HIGH);
       digitalWrite(closeLED, LOW);
       digitalWrite(stopLED, LOW);
+      open();
 
     } else if (incomingByte == 'L') {
-      //close();
       digitalWrite(openLED, LOW);
       digitalWrite(closeLED, HIGH);
       digitalWrite(stopLED, LOW);
+      close();
 
-    } else if (incomingByte == 'S') {
-      //close();
-      digitalWrite(openLED, LOW);
-      digitalWrite(closeLED, LOW);
-      digitalWrite(stopLED, HIGH);
-      
     } else {
       digitalWrite(openLED, LOW);
       digitalWrite(closeLED, LOW);
@@ -89,27 +83,33 @@ void loop() {
   }
 }
 
-// void open() {
-//   for ( ; currentHeight <= windowHeightSteps ; currentHeight += stepsPerRevolution ) {
-//     if (Serial.available() > 0) {
-//       incomingByte = Serial.read();
-//       if (incomingByte == 'S') {
-//         break;
-//       }
-//     }
-//     myStepper.step(stepsPerRevolution);
-//   }
-// }
-//
-// void close() {
-//   for ( ; currentHeight >= 0 ; currentHeight -= stepsPerRevolution ) {
-//     if (Serial.available() > 0) {
-//       incomingByte = Serial.read();
-//       if (incomingByte == 'S') {
-//         break;
-//       }
-//     }
-//     myStepper.step(-stepsPerRevolution);
-//   }
-//
-// }
+void open() {
+  for ( ; currentHeight <= windowHeightSteps ; currentHeight += stepsPerRevolution ) {
+    if (Serial.available() > 0) {
+      incomingByte = Serial.read();
+      if (incomingByte == 'S') {
+        digitalWrite(openLED, LOW);
+        digitalWrite(closeLED, LOW);
+        digitalWrite(stopLED, HIGH);
+        break;
+      }
+    }
+    myStepper.step(stepsPerRevolution/2);
+  }
+}
+
+void close() {
+  for ( ; currentHeight >= 0 ; currentHeight -= stepsPerRevolution ) {
+    if (Serial.available() > 0) {
+      incomingByte = Serial.read();
+      if (incomingByte == 'S') {
+        digitalWrite(openLED, LOW);
+        digitalWrite(closeLED, LOW);
+        digitalWrite(stopLED, HIGH);
+        break;
+      }
+    }
+    myStepper.step(-stepsPerRevolution/2);
+  }
+
+}
